@@ -1,0 +1,17 @@
+# 放入 /etc/caddy/Caddyfile 的 wkeeli.cn { ... } 块内，
+# 必须在兜底 `reverse_proxy localhost:5000` 之前。
+#
+# 拓扑（与现有 /pw、/supersys 服务一致，应用机不直接暴露公网端口）：
+#   浏览器 → Caddy(反代机:443) → 127.0.0.1:18070 → frps → frpc → 应用机 127.0.0.1:8070
+#
+# 若应用机与反代机同机或可直连，也可改为 http://<app-host>:8070。
+
+redir /supercut /supercut/ 308
+handle_path /supercut/* {
+    reverse_proxy 127.0.0.1:18070 {
+        # 应用内生成 URL / 静态资源路径时感知 /supercut 前缀（配合 SUPERSCUT_BEHIND_PROXY=1）
+        header_up X-Forwarded-Prefix /supercut
+        # 大文件上传 / 长任务：关闭响应缓冲
+        flush_interval -1
+    }
+}

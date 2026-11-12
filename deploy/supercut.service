@@ -1,0 +1,47 @@
+[Unit]
+Description=Supercut · 极简在线剪视频工具
+Documentation=https://wkeeli.cn/supercut/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=supercut
+Group=supercut
+WorkingDirectory=/opt/supercut
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+
+# ===== 必填：账号密码与会话密钥（部署时替换，切勿提交真实值） =====
+Environment=SUPERSCUT_USERNAME=admin
+Environment=SUPERSCUT_PASSWORD=CHANGE_ME_强烈随机密码
+Environment=SUPERSCUT_SECRET_KEY=CHANGE_ME_随机长字符串
+
+# ===== 运行配置 =====
+Environment=SUPERSCUT_DATA_DIR=/var/lib/supercut
+Environment=SUPERSCUT_MAX_UPLOAD_MB=512
+Environment=SUPERSCUT_TTL_HOURS=2
+# 通过 Caddy 子路径 /supercut/ 反代时必须开启：
+Environment=SUPERSCUT_BEHIND_PROXY=1
+# 线上 HTTPS 必须开启：
+Environment=SUPERSCUT_COOKIE_SECURE=1
+
+ExecStart=/opt/supercut/venv/bin/gunicorn app:app --workers 1 --threads 4 --timeout 1200 --bind 127.0.0.1:8070
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+KillSignal=SIGTERM
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=supercut
+
+# 最小化权限：仅数据目录可写
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/supercut
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

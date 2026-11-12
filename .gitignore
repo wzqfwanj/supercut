@@ -1,0 +1,40 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+instance/
+.env
+.env.*
+!.env.example
+
+# 上传 / 导出临时文件与测试产物
+*.mp4
+*.m4v
+*.mov
+*.mkv
+*.webm
+*.avi
+*.flv
+*.wmv
+*.ts
+*.mts
+*.3gp
+/screenshots/
+test-results/
+playwright-report/
+
+# 本地部署笔记与凭据（绝不提交）
+deploy/*.local
+deploy/*.local.*
+LOCAL_*.md
+*.local.txt
+*.pem
+*.key
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
