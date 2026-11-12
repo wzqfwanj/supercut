@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="gray">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#e9e9e5">
+  <title>登录 · Supercut</title>
+  <base href="{{ request.script_root }}/">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body class="page page--login">
+  <div class="login-theme">
+    <fieldset class="theme-switch" aria-label="主题">
+      <legend class="sr-only">主题</legend>
+      <label class="theme-switch__opt">
+        <input class="sr-only" type="radio" name="theme" value="light">
+        <span>明</span>
+      </label>
+      <label class="theme-switch__opt">
+        <input class="sr-only" type="radio" name="theme" value="gray">
+        <span>灰</span>
+      </label>
+      <label class="theme-switch__opt">
+        <input class="sr-only" type="radio" name="theme" value="dark">
+        <span>暗</span>
+      </label>
+    </fieldset>
+  </div>
+
+  <main class="login-wrap">
+    <section class="card login-card" aria-labelledby="login-title">
+      <div class="brand brand--lg">
+        <svg class="brand__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="6" cy="6" r="2.6"></circle>
+          <circle cx="6" cy="18" r="2.6"></circle>
+          <path d="M8.2 7.6 20 18M20 6 8.2 16.4"></path>
+        </svg>
+        <span class="brand__name" id="login-title">Supercut</span>
+      </div>
+      <p class="login-card__sub">极简在线剪视频工具</p>
+
+      {% if error %}
+      <div class="alert alert--error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form class="login-form" id="login-form" method="post" action="login">
+        <label class="field">
+          <span class="field__label">用户名</span>
+          <input class="input" type="text" name="username" value="{{ username or '' }}" autocomplete="username" autocapitalize="off" spellcheck="false" required autofocus>
+        </label>
+        <label class="field">
+          <span class="field__label">密码</span>
+          <input class="input" type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn--primary btn--block" type="submit">登录</button>
+      </form>
+
+      <p class="login-card__foot">仅限授权用户使用</p>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+</body>
+</html>

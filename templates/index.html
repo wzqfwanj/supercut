@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="gray">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#e9e9e5">
+  <title>Supercut · 极简剪视频</title>
+  <base href="{{ request.script_root }}/">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body class="page page--app">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Supercut 首页">
+      <svg class="brand__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="6" cy="6" r="2.6"></circle>
+        <circle cx="6" cy="18" r="2.6"></circle>
+        <path d="M8.2 7.6 20 18M20 6 8.2 16.4"></path>
+      </svg>
+      <span class="brand__name">Supercut</span>
+    </a>
+
+    <div class="topbar__side">
+      <fieldset class="theme-switch" aria-label="主题">
+        <legend class="sr-only">主题</legend>
+        <label class="theme-switch__opt">
+          <input class="sr-only" type="radio" name="theme" value="light">
+          <span>明</span>
+        </label>
+        <label class="theme-switch__opt">
+          <input class="sr-only" type="radio" name="theme" value="gray">
+          <span>灰</span>
+        </label>
+        <label class="theme-switch__opt">
+          <input class="sr-only" type="radio" name="theme" value="dark">
+          <span>暗</span>
+        </label>
+      </fieldset>
+
+      <form class="topbar__logout" method="post" action="logout">
+        <button class="btn btn--ghost btn--sm" type="submit">退出登录</button>
+      </form>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel upload-panel" aria-labelledby="upload-title">
+      <div class="panel__head">
+        <h1 class="panel__title" id="upload-title">上传视频</h1>
+        <p class="panel__hint" id="upload-hint">视频只在本地预览，不会重复上传。</p>
+      </div>
+
+      <input class="sr-only" id="file-input" type="file" tabindex="-1"
+             accept="video/*,.mp4,.m4v,.mov,.mkv,.webm,.avi,.flv,.wmv,.ts,.mts,.3gp">
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-describedby="upload-limit">
+        <span class="dropzone__icon" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 16V4"></path>
+            <path d="m7.5 8.5 4.5-4.5 4.5 4.5"></path>
+            <path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"></path>
+          </svg>
+        </span>
+        <span class="dropzone__title">点击选择视频，或拖拽到这里</span>
+        <span class="dropzone__hint" id="upload-limit">支持 mp4 / mov / mkv / webm 等格式</span>
+      </div>
+
+      <div class="upload-progress" id="upload-progress" hidden>
+        <div class="upload-progress__meta">
+          <span class="truncate" id="upload-filename"></span>
+          <span class="upload-progress__percent" id="upload-percent">0%</span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="上传进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="upload-progressbar">
+          <div class="progress__bar" id="upload-bar"></div>
+        </div>
+      </div>
+
+      <div class="file-card" id="file-card" hidden>
+        <div class="file-card__head">
+          <svg class="file-card__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+            <path d="m10 10 5 3-5 3z"></path>
+          </svg>
+          <span class="file-card__name truncate" id="meta-name"></span>
+        </div>
+        <dl class="meta">
+          <div class="meta__item">
+            <dt>时长</dt>
+            <dd id="meta-duration">—</dd>
+          </div>
+          <div class="meta__item">
+            <dt>分辨率</dt>
+            <dd id="meta-resolution">—</dd>
+          </div>
+          <div class="meta__item">
+            <dt>大小</dt>
+            <dd id="meta-size">—</dd>
+          </div>
+        </dl>
+        <div class="file-card__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-change-video" type="button">更换视频</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="editor" id="editor" aria-label="视频编辑" hidden>
+      <div class="panel video-panel">
+        <div class="video-frame" id="video-frame">
+          <video id="video" controls playsinline preload="metadata" aria-label="视频预览"></video>
+          <div class="crop-layer is-dimmed" id="crop-layer" hidden>
+            <div class="crop-selection" id="crop-selection" hidden>
+              <span class="crop-handle crop-handle--nw" data-handle="nw"></span>
+              <span class="crop-handle crop-handle--ne" data-handle="ne"></span>
+              <span class="crop-handle crop-handle--sw" data-handle="sw"></span>
+              <span class="crop-handle crop-handle--se" data-handle="se"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="transport" id="transport" hidden>
+          <button class="icon-btn" id="btn-play" type="button" aria-label="播放">
+            <svg class="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+            <svg class="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"></path></svg>
+          </button>
+          <span class="transport__time" id="transport-time">0:00.00 / 0:00.00</span>
+          <input class="range range--seek" id="seek" type="range" min="0" max="1" step="0.01" value="0" aria-label="播放进度">
+        </div>
+
+        <p class="video-panel__hint" id="crop-hint" hidden>在画面上拖拽框选要保留的区域；拖动选区可移动，拖四角可调整大小。</p>
+        <p class="video-panel__hint" id="video-hint">预览使用本地文件，切换主题或模式不会重新上传。</p>
+      </div>
+
+      <div class="panel controls">
+        <div class="seg" role="group" aria-label="编辑模式">
+          <button class="seg__btn is-active" id="mode-trim" type="button" aria-pressed="true">剪片段</button>
+          <button class="seg__btn" id="mode-crop" type="button" aria-pressed="false">剪窗口范围</button>
+        </div>
+
+        <div class="mode" id="trim-panel">
+          <div class="mode__head">
+            <h2 class="mode__title">时间范围</h2>
+            <span class="mode__value" id="trim-duration">0.00 秒</span>
+          </div>
+
+          <div class="dual-range" id="trim-range">
+            <div class="dual-range__track"></div>
+            <div class="dual-range__fill" id="trim-fill"></div>
+            <input class="dual-range__input" id="trim-start-range" type="range" min="0" max="1" step="0.01" value="0" aria-label="开始时间">
+            <input class="dual-range__input" id="trim-end-range" type="range" min="0" max="1" step="0.01" value="1" aria-label="结束时间">
+          </div>
+
+          <div class="grid-2">
+            <label class="field">
+              <span class="field__label">开始（秒）</span>
+              <input class="input" id="trim-start-input" type="number" min="0" step="0.01" value="0.00" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span class="field__label">结束（秒）</span>
+              <input class="input" id="trim-end-input" type="number" min="0" step="0.01" value="0.00" inputmode="decimal">
+            </label>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn--ghost btn--sm" id="btn-set-start" type="button">设为起点</button>
+            <button class="btn btn--ghost btn--sm" id="btn-set-end" type="button">设为终点</button>
+            <button class="btn btn--ghost btn--sm" id="btn-preview" type="button" aria-pressed="false">预览区间</button>
+          </div>
+
+          <button class="btn btn--primary btn--block" id="btn-export-trim" type="button">导出片段</button>
+        </div>
+
+        <div class="mode" id="crop-panel" hidden>
+          <div class="mode__head">
+            <h2 class="mode__title">画面范围</h2>
+            <span class="mode__value" id="crop-size">未选择</span>
+          </div>
+
+          <div class="grid-2">
+            <label class="field">
+              <span class="field__label">X（像素）</span>
+              <input class="input" id="crop-x" type="number" min="0" step="1" value="0" inputmode="numeric" disabled>
+            </label>
+            <label class="field">
+              <span class="field__label">Y（像素）</span>
+              <input class="input" id="crop-y" type="number" min="0" step="1" value="0" inputmode="numeric" disabled>
+            </label>
+            <label class="field">
+              <span class="field__label">宽（像素）</span>
+              <input class="input" id="crop-w" type="number" min="16" step="1" value="0" inputmode="numeric" disabled>
+            </label>
+            <label class="field">
+              <span class="field__label">高（像素）</span>
+              <input class="input" id="crop-h" type="number" min="16" step="1" value="0" inputmode="numeric" disabled>
+            </label>
+          </div>
+
+          <p class="mode__hint" id="crop-empty-hint">在左侧画面上拖拽框选要保留的区域。</p>
+
+          <div class="btn-row">
+            <button class="btn btn--ghost btn--sm" id="btn-select-all" type="button">全选</button>
+            <button class="btn btn--ghost btn--sm" id="btn-reset-crop" type="button">重置</button>
+          </div>
+
+          <button class="btn btn--primary btn--block" id="btn-export-crop" type="button" disabled>导出窗口</button>
+        </div>
+
+        <div class="export-status" id="export-status" hidden>
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="export-status-text">正在导出…</span>
+        </div>
+
+        <div class="result" id="result" hidden>
+          <div class="result__head">
+            <span class="result__title" id="result-title">导出成功</span>
+            <span class="result__meta" id="result-meta"></span>
+          </div>
+          <a class="btn btn--primary btn--block" id="result-download" href="#" download>下载视频</a>
+          <p class="result__hint">导出文件临时保存，请及时下载。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+</body>
+</html>
